@@ -18,7 +18,6 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v4
         with:
-          # package.json에 명시된 Node.js 버전을 사용하는 것이 좋습니다.
           node-version: '20' 
           cache: 'npm'
 
@@ -28,32 +27,26 @@ jobs:
       - name: Build application
         run: npm run build
         env:
-          # GitHub Actions Secrets에 저장된 환경 변수 사용
+          # GitHub Secrets에 저장된 환경 변수를 사용합니다.
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          DATABASE_URL: stock-tracker.azurewebsites.net
-          NEXTAUTH_URL: https://stock-tracker.azurewebsites.net # 본인 앱 이름으로 변경
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXTAUTH_URL: https://stock-tracker.azurewebsites.net # 본인의 Web App URL
 
-      # Standalone 폴더로 배포에 필요한 파일들 복사
-      - name: Copy files for deployment
+      - name: Prepare deployment package
         run: |
-          cp -r .next/standalone .
-          cp -r public .next/standalone/public
-          cp -r .next/static .next/standalone/.next/static
-          cp server.js .next/standalone/server.js
-          cp web.config .next/standalone/web.config
+          # 배포를 위한 깨끗한 디렉터리 생성
+          mkdir -p deploy
+          # standalone 빌드 결과물을 deploy 디렉터리로 복사
+          cp -r .next/standalone/* deploy/
+          # public 폴더와 static 에셋을 올바른 위치로 복사
+          cp -r public deploy/public
+          cp -r .next/static deploy/.next/static
 
-      # 배포 패키지 압축
-      - name: Create deployment package
-        run: |
-          cd .next/standalone
-          zip -r ../../deployment.zip .
-
-      # 배포 아티팩트 업로드
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: deployment.zip
+          path: ./deploy
 
   deploy:
     runs-on: ubuntu-latest
@@ -63,20 +56,16 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     
     steps:
-      # 빌드 아티팩트 다운로드
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
+          path: .
 
-      - name: Unzip artifact for deployment
-        run: unzip deployment.zip -d ./release
-
-      # Azure Web App에 배포
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'stock-tracker' # Azure Web App 이름
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }} # GitHub Secret에 저장된 배포 프로필
-          package: './release'
+          package: .
