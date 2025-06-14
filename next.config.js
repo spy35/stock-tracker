@@ -1,5 +1,15 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // standalone 모드를 다시 활성화합니다.
+  output: "standalone",
+  
+  // 파일 경로 추적 문제를 해결하기 위한 설정
+  experimental: {
+    outputFileTracingRoot: path.join(__dirname, './'),
+  },
+
   // Next.js 15에서 변경된 설정
   serverExternalPackages: ["@prisma/client", "bcrypt"],
 
@@ -7,13 +17,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
     domains: ["localhost"],
-  },
-
-  // 환경 변수 설정
-  env: {
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-    DATABASE_URL: process.env.DATABASE_URL,
   },
 
   // 빌드 최적화
