@@ -2,9 +2,7 @@ const path = require('path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // standalone 모드를 다시 활성화합니다.
-  output: "standalone",
-  
+
   // 파일 경로 추적 문제를 해결하기 위한 설정
   experimental: {
     outputFileTracingRoot: path.join(__dirname, './'),
