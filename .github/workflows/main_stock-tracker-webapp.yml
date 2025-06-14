@@ -44,7 +44,9 @@ jobs:
 
       # 배포 패키지 압축
       - name: Create deployment package
-        run: zip -r deployment.zip .next/standalone
+        run: |
+          cd .next/standalone
+          zip -r ../../deployment.zip .
 
       # 배포 아티팩트 업로드
       - name: Upload artifact for deployment job
