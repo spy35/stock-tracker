@@ -26,4 +26,3 @@ const nextConfig = {
 }
 
 module.exports = nextConfig
-// Next.js 15에서 변경된 설정을 적용한 next.config.js 파일입니다.
