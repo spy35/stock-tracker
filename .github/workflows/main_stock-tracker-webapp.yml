@@ -36,8 +36,8 @@ jobs:
         run: |
           # 배포를 위한 깨끗한 디렉터리 생성
           mkdir -p deploy
-          # standalone 빌드 결과물을 deploy 디렉터리로 복사
-          cp -r .next/standalone/* deploy/
+          # standalone 빌드의 모든 내용(숨김 파일 포함)을 deploy 디렉터리로 복사
+          cp -r .next/standalone/. deploy/
           # public 폴더와 static 에셋을 올바른 위치로 복사
           cp -r public deploy/public
           cp -r .next/static deploy/.next/static
