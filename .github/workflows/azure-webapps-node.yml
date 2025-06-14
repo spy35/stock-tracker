@@ -31,7 +31,7 @@ jobs:
           # GitHub Actions Secrets에 저장된 환경 변수 사용
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_URL: https://<YOUR_APP_NAME>.azurewebsites.net # 본인 앱 이름으로 변경
+          NEXTAUTH_URL: https://stock-tracker.azurewebsites.net # 본인 앱 이름으로 변경
 
       # Standalone 폴더로 배포에 필요한 파일들 복사
       - name: Copy files for deployment
