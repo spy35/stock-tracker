@@ -1,3 +1,5 @@
+# .github/workflows/main_stock-tracker-webapp.yml
+
 name: Build and deploy Node.js app to Azure Web App - stock-tracker-webapp
 
 on:
@@ -16,84 +18,35 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # package.json에 명시된 Node.js 버전을 사용하는 것이 좋습니다.
+          node-version: '20' 
           cache: 'npm'
 
-      - name: Clean and install dependencies
-        run: |
-          rm -rf node_modules package-lock.json .next
-          npm ci
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build application
-        run: |
-          npm run build
+        run: npm run build
         env:
-          CI: true
+          # GitHub Actions Secrets에 저장된 환경 변수 사용
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_URL: https://stock-tracker-webapp.azurewebsites.net
+          NEXTAUTH_URL: https://<YOUR_APP_NAME>.azurewebsites.net # 본인 앱 이름으로 변경
 
-      - name: Debug build output
+      # Standalone 폴더로 배포에 필요한 파일들 복사
+      - name: Copy files for deployment
         run: |
-          echo "=== Build Output Debug ==="
-          echo "Current directory contents:"
-          ls -la
-          echo ""
-          echo ".next directory contents:"
-          ls -la .next/ || echo ".next directory not found"
-          echo ""
-          echo "Standalone directory contents:"
-          ls -la .next/standalone/ || echo "Standalone directory not found"
-          echo ""
-          echo "Package.json name:"
-          grep '"name"' package.json
+          cp -r .next/standalone .
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
+          cp server.js .next/standalone/server.js
+          cp web.config .next/standalone/web.config
 
+      # 배포 패키지 압축
       - name: Create deployment package
-        run: |
-          if [ ! -d ".next/standalone" ]; then
-            echo "❌ ERROR: Standalone build not found!"
-            echo "Available directories in .next:"
-            ls -la .next/
-            exit 1
-          fi
-          
-          echo "✅ Standalone build found, creating deployment package..."
-          
-          # standalone 디렉토리로 이동
-          cd .next/standalone
-          
-          # 현재 디렉토리 내용 확인
-          echo "Standalone directory contents:"
-          ls -la
-          
-          # 필요한 파일들 복사
-          cp ../../package.json .
-          cp ../../server.js .
-          cp ../../next.config.js .
-          
-          # public 폴더 복사
-          if [ -d "../../public" ]; then
-            cp -r ../../public .
-            echo "✅ Public folder copied"
-          fi
-          
-          # static 파일 복사
-          if [ -d "../static" ]; then
-            mkdir -p .next
-            cp -r ../static .next/
-            echo "✅ Static files copied"
-          fi
-          
-          # 최종 패키지 내용 확인
-          echo "Final package contents:"
-          ls -la
-          
-          # ZIP 파일 생성
-          zip -r ../../deployment.zip . -x "*.git*" "*.DS_Store*"
-          
-          cd ../..
-          echo "✅ Deployment package created ($(du -h deployment.zip | cut -f1))"
+        run: zip -r deployment.zip .next/standalone
 
+      # 배포 아티팩트 업로드
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -106,35 +59,22 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write
-
+    
     steps:
+      # 빌드 아티팩트 다운로드
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
 
-      - name: Unzip and verify deployment
-        run: |
-          unzip deployment.zip
-          echo "=== Deployment Package Contents ==="
-          ls -la
-          echo ""
-          echo "Package.json contents:"
-          cat package.json | head -10
-          echo ""
-          echo "Server.js exists:"
-          ls -la server.js || echo "server.js not found"
-          echo ""
-          echo ".next directory:"
-          ls -la .next/ || echo ".next directory not found"
+      - name: Unzip artifact for deployment
+        run: unzip deployment.zip -d ./release
 
+      # Azure Web App에 배포
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'stock-tracker-webapp'
-          slot-name: 'Production'
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: .
+          app-name: 'stock-tracker-webapp' # Azure Web App 이름
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }} # GitHub Secret에 저장된 배포 프로필
+          package: './release'
