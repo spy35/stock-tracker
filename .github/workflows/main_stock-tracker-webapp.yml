@@ -75,6 +75,6 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'stock-tracker-webapp' # Azure Web App 이름
+          app-name: 'stock-tracker' # Azure Web App 이름
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }} # GitHub Secret에 저장된 배포 프로필
           package: './release'
