@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "sqlserver"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(cuid())
+  name          String?
+  email         String?    @unique
+  password      String?
+  emailVerified DateTime?
+  image         String?
+  favorites     Favorite[]
+}
+
+model Favorite {
+  id            String   @id @default(cuid())
+  userId        String
+  symbol        String
+  name          String
+  isKoreanStock Boolean  @default(false)
+  createdAt     DateTime @default(now(), map: "DF__Favorite__create__70DDC3D8")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol])
+  @@unique([userId, symbol], map: "UQ_Favorite_userId_symbol")
+}
