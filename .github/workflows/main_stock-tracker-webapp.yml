@@ -43,7 +43,8 @@ jobs:
           # public 폴더와 static 에셋을 올바른 위치로 복사
           cp -r public deploy/public
           cp -r .next/static deploy/.next/static
-          # Prisma 스키마 파일 복사 (런타임에 필요)
+          # Prisma 스키마 파일을 복사하기 전에 디렉터리 생성
+          mkdir -p deploy/prisma
           cp prisma/schema.prisma deploy/prisma/
 
       - name: Upload artifact for deployment
