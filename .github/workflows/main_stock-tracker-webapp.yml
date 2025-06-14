@@ -1,6 +1,6 @@
 # .github/workflows/main_stock-tracker-webapp.yml
 
-name: Build and deploy Node.js app to Azure Web App - stock-tracker-webapp
+name: Build and deploy Node.js app to Azure Web App - stock-tracker
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
           # GitHub Secrets에 저장된 환경 변수를 사용합니다.
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_URL: https://stock-tracker.azurewebsites.net # 본인의 Web App URL
+          NEXTAUTH_URL: https://stock-tracker.azurewebsites.net # 실제 앱 URL로 수정
 
       - name: Prepare deployment package
         run: |
@@ -66,6 +66,6 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'stock-tracker' # Azure Web App 이름
+          app-name: 'stock-tracker' # Azure Portal에 있는 실제 앱 이름으로 수정
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }} # GitHub Secret에 저장된 배포 프로필
           package: .
