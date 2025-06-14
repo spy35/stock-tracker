@@ -31,8 +31,6 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
-  // 출력 설정
-  output: "standalone",
 }
 
 module.exports = nextConfig

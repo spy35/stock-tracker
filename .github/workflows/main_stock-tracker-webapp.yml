@@ -7,9 +7,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,54 +22,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
       - name: Build Next.js application
         run: npm run build
         env:
-          # 빌드 시점에 필요한 환경 변수를 GitHub Secrets에서 가져옵니다.
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_URL: https://stock-tracker.azurewebsites.net # 본인의 Web App URL
-
-      - name: Prepare deployment package
-        run: |
-          # 배포를 위한 깨끗한 디렉터리 생성
-          mkdir -p deploy
-          # standalone 빌드의 모든 내용(숨김 파일 포함)을 deploy 디렉터리로 복사
-          cp -r .next/standalone/. deploy/
-          # public 폴더와 static 에셋을 올바른 위치로 복사
-          cp -r public deploy/public
-          cp -r .next/static deploy/.next/static
-          # Prisma 스키마 파일을 복사하기 전에 디렉터리 생성
-          mkdir -p deploy/prisma
-          cp prisma/schema.prisma deploy/prisma/
-
-      - name: Upload artifact for deployment
-        uses: actions/upload-artifact@v4
-        with:
-          name: node-app
-          path: ./deploy
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: node-app
-          path: .
+          NEXTAUTH_URL: https://stock-tracker.azurewebsites.net
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'stock-tracker' # Azure Portal의 실제 앱 이름
+          app-name: 'stock-tracker'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: .
+          package: . # 현재 디렉터리 전체를 배포합니다.
