@@ -4,7 +4,7 @@ const path = require('path');
 const nextConfig = {
   // standalone 모드를 활성화합니다.
   output: "standalone",
-
+  
   // 파일 경로 추적 문제를 해결하기 위한 설정
   experimental: {
     outputFileTracingRoot: path.join(__dirname, './'),
@@ -26,7 +26,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // env 블록을 제거하여 Azure Portal의 환경 변수를 직접 사용하도록 합니다.
 }
 
 module.exports = nextConfig
