@@ -31,7 +31,9 @@ jobs:
 
       - name: Prepare standalone package for deployment
         run: |
-          # standalone 폴더 안에 public 폴더와 .next/static 폴더를 복사합니다.
+          # package.json 파일을 standalone 폴더의 루트로 복사합니다.
+          cp package.json .next/standalone/
+          # public 폴더와 .next/static 폴더를 복사합니다.
           cp -r public .next/standalone/public
           cp -r .next/static .next/standalone/.next/static
           # Prisma 스키마 파일을 복사하기 전에 대상 디렉터리를 생성합니다.
