@@ -1,4 +1,4 @@
-name: Deploy to Azure Web App
+name: Build and Deploy Standalone App to Azure
 
 on:
   push:
@@ -7,18 +7,41 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      # 1. GitHub 저장소의 소스 코드를 가져옵니다.
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. 소스 코드 전체를 Azure Web App에 배포합니다.
-      #    이제 Azure가 'npm install'과 'npm run build'를 자동으로 실행할 것입니다.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js application
+        run: npm run build
+        env:
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXTAUTH_URL: https://stock-tracker.azurewebsites.net
+
+      - name: Prepare standalone package for deployment
+        run: |
+          # standalone 폴더 안에 public 폴더와 .next/static 폴더를 복사합니다.
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
+          # Prisma 스키마 파일을 복사하기 전에 대상 디렉터리를 생성합니다.
+          mkdir -p .next/standalone/prisma
+          cp prisma/schema.prisma .next/standalone/prisma/
+
       - name: Deploy to Azure Web App
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'stock-tracker'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: . # 현재 디렉터리(소스 코드 전체)를 배포합니다.
+          package: ./.next/standalone # .next/standalone 폴더 자체를 배포합니다.
