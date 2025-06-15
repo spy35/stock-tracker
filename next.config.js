@@ -29,3 +29,4 @@ const nextConfig = {
 }
 
 module.exports = nextConfig
+// Next.js 설정을 내보냅니다.
