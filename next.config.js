@@ -26,7 +26,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // env 블록을 제거하여 Azure Portal의 환경 변수를 직접 사용하도록 합니다.
 }
 
 module.exports = nextConfig
-// Next.js 설정을 내보냅니다.
